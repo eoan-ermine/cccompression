@@ -1,2 +1,3 @@
 # cccompression
-Build Your Own Compression Tool in C++
+
+Write Your Own Compression Tool in C++
