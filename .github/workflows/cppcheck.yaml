@@ -1,0 +1,24 @@
+name: Cppcheck
+
+on:
+  workflow_run:
+    workflows: ["Style"]
+    types:
+      - completed
+
+jobs:
+  cppcheck:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    name: "Run cppcheck"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup
+        run: sudo apt-get install cppcheck
+
+      - name: Configure
+        run: cmake -S . -DDISABLE_BUILDING_EXECUTABLE=1 -B building_cppcheck
+
+      - name: Check with cppcheck
+        run: cmake --build building_cppcheck --target cppcheck
