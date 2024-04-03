@@ -1,99 +1,58 @@
+#pragma once
+
+#include <queue>
 #include <memory>
 #include <vector>
 
+#include "frequency_table.hpp"
+
 namespace eoanermine::cccompression {
 
-struct huff_base_node {
-	virtual bool is_leaf() const = 0;
-	virtual int weight() const = 0;
-};
-
-struct huff_leaf_node : huff_base_node {
-	char element;
-	int weight_;
-
-	huff_leaf_node(char element, int weight)
-		: element(element), weight_(weight) { }
-
-	char value() {
-		return element;
-	}
-
-	int weight() const override {
-		return weight_;
-	}
-
-	bool is_leaf() const override {
-		return true;
-	}
-};
-
-struct huff_internal_node : huff_base_node {
-	huff_internal_node(std::shared_ptr<huff_base_node> left, std::shared_ptr<huff_base_node> right, int weight)
-		: left_(left), right_(right), weight_(weight) { }
-
-	std::shared_ptr<huff_base_node> left() {
-		return left_;
-	}
-
-	std::shared_ptr<huff_base_node> right() {
-		return right_;
-	}
-
-	int weight() const override {
-		return weight_;
-	}
-
-	bool is_leaf() const override {
-		return false;
-	}
-private:
-	int weight_;
-	std::shared_ptr<huff_base_node> left_;
-	std::shared_ptr<huff_base_node> right_;
-};
+using prefix_code_table = std::unordered_map<char, std::string>;
 
 struct huff_tree {
-	huff_tree(char element, int weight) {
-		root_ = std::make_shared<huff_leaf_node>(element, weight);
+	char element;
+	int weight;
+	std::unique_ptr<huff_tree> left;
+	std::unique_ptr<huff_tree> right;
+
+	bool operator<(const huff_tree& rhs) {
+		return !(weight < rhs.weight);
 	}
 
-	huff_tree(std::shared_ptr<huff_base_node> left, std::shared_ptr<huff_base_node> right, int weight) {
-		root_ = std::make_shared<huff_internal_node>(left, right, weight);
-	}
+	static std::unique_ptr<huff_tree> create(const frequency_table& table) {
+		std::priority_queue<std::unique_ptr<huff_tree>, std::vector<std::unique_ptr<huff_tree>>> queue;
+		for (const auto& [k, v]: table) {
+			queue.push(std::make_unique<huff_tree>(k, v, nullptr, nullptr));
+		}
+		while (queue.size() > 1) {
+			auto left = std::move(const_cast<std::unique_ptr<huff_tree>&>(queue.top()));
+			queue.pop();
 
-	static std::shared_ptr<huff_tree> create() {
-		// min heap
-		std::vector<std::shared_ptr<huff_tree>> heap;
-		std::make_heap(heap.begin(), heap.end(), [](const auto& lhs, const auto& rhs) -> bool {
-			return !(lhs->weight() < rhs->weight());
-		});
+			auto right = std::move(const_cast<std::unique_ptr<huff_tree>&>(queue.top()));
+			queue.pop();
 
-		std::shared_ptr<huff_tree> tmp1, tmp2, tmp3;
-		while (heap.size() > 1) {
-			std::pop_heap(heap.begin(), heap.end());
-			tmp1 = heap.back();
-			heap.pop_back();
-
-			std::pop_heap(heap.begin(), heap.end());
-			tmp2 = heap.back();
-			heap.pop_back();
-
-			tmp3 = std::make_shared<huff_tree>(tmp1->root(), tmp2->root(), tmp1->weight() + tmp2->weight());
+			queue.push(std::make_unique<huff_tree>('\0', left->weight + right->weight, std::move(left), std::move(right)));
 		}
 
-		return tmp3;
+		return std::move(const_cast<std::unique_ptr<huff_tree>&>(queue.top()));
 	}
 
-	std::shared_ptr<huff_base_node> root() const {
-		return root_;
-	}
-
-	int weight() const {
-		return root_->weight();
+	prefix_code_table table() const {
+		prefix_code_table res;
+		encode(this, "", res);
+		return res;
 	}
 private:
-	std::shared_ptr<huff_base_node> root_;
+	void encode(const huff_tree* root, std::string str, prefix_code_table& res) const {
+		if (!root->left && !root->right) {
+			res[root->element] = str;
+			return;
+		}
+
+		encode(root->left.get(), str + "0", res);
+		encode(root->right.get(), str + "1", res);
+	}
 };
 
 }

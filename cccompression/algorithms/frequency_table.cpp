@@ -16,24 +16,4 @@ frequency_table frequency_table::from_file(std::ifstream& stream) {
     return res;
 }
 
-int frequency_table::at(char ch) const {
-    return table.at(ch);
-}
-
-auto frequency_table::begin() {
-    return table.begin();
-}
-
-auto frequency_table::begin() const {
-    return table.begin();
-}
-
-auto frequency_table::end() {
-    return table.end();
-}
-
-auto frequency_table::end() const {
-    return table.end();
-}
-
 }

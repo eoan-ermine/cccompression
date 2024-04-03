@@ -71,7 +71,11 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
     std::ifstream fstream{path, std::ios::binary};
+    
     auto frequency_table = eoanermine::cccompression::frequency_table::from_file(fstream);
+    auto huffman_tree = eoanermine::cccompression::huff_tree::create(frequency_table);
+    auto prefix_table = huffman_tree->table();
+
     return EXIT_SUCCESS;  
   } else {
     print_help(visible);
