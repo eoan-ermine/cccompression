@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "algorithms/frequency_table.hpp"
+#include "algorithms/huffman_tree.hpp"
 
 namespace fs = std::filesystem;
 namespace po = boost::program_options;

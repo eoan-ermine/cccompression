@@ -13,6 +13,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(ALL_SOURCES
     cccompression/algorithms/frequency_table.cpp
     cccompression/algorithms/frequency_table.hpp
+    cccompression/algorithms/huffman_tree.hpp
 )
 
 if (NOT DISABLE_BUILDING_EXECUTABLE)
