@@ -10,8 +10,13 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(ALL_SOURCES
+    cccompression/algorithms/frequency_table.cpp
+    cccompression/algorithms/frequency_table.hpp
+)
+
 if (NOT DISABLE_BUILDING_EXECUTABLE)
-    add_executable(${PROJECT_NAME} cccompression/main.cpp)
+    add_executable(${PROJECT_NAME} ${ALL_SOURCES} cccompression/main.cpp)
 
     # -- Boost
     # Please, do not remove the magic trick below
